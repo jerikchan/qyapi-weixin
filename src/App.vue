@@ -1,10 +1,25 @@
 <template>
   <a-config-provider :locale="locale">
-    <a-form :label-col="{ span: 4 }" :wrapper-col="{ span: 12 }">
+    <a-form :label-col="{ span: 2 }" :wrapper-col="{ span: 22 }">
       <a-form-item label="时间表">
         <a-table bordered :data-source="dataSource" :columns="columns" :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }">
           <template #time="{ record }">
             <a-date-picker show-time v-model:value="record.time" placeholder="Select Time" />
+          </template>
+          <template #repeat="{ record }">
+            <a-switch v-model:checked="record.repeat"></a-switch>
+            <a-select v-model:value="record.repeatRange" v-show="record.repeat">
+              <a-select-option :value="0">每1周</a-select-option>
+              <a-select-option :value="1">每2周</a-select-option>
+              <a-select-option :value="2">每3周</a-select-option>
+              <a-select-option :value="3">每4周</a-select-option>
+            </a-select>
+          </template>
+          <template #message="{ record }">
+            <a-textarea v-model:value="record.message" :autosize="{ minRows: 4, maxRows: 4 }" allowClear></a-textarea>
+          </template>
+          <template #webhook="{ record }">
+            <a-input v-model:value="record.webhook"></a-input>
           </template>
           <template #operation="{ record }">
             <a-popconfirm
@@ -16,18 +31,12 @@
             </a-popconfirm>
           </template>
         </a-table>
+      </a-form-item>
+      <a-form-item :wrapper-col="{ span: 4, offset: 2 }">
         <a-button class="editable-add-btn" @click="handleAdd">
           新增时间
         </a-button>
-      </a-form-item>
-      <a-form-item label="内容">
-        <a-textarea v-model:value="message" auto-size></a-textarea>
-      </a-form-item>
-      <a-form-item label="webhook">
-        <a-input v-model:value="webhook"></a-input>
-      </a-form-item>
-      <a-form-item :wrapper-col="{ span: 14, offset: 4 }">
-        <a-button @click="handleCommit">
+        <a-button style="margin-left: 10px;" @click="handleCommit">
           立即测试
         </a-button>
         <a-button style="margin-left: 10px;" type="primary" @click="handleCommit">
@@ -46,37 +55,50 @@ moment.locale('zh-cn');
 export default {
   data() {
     return {
-      webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=02f515cc-120d-4abe-b481-0524b4e2488f',
       moment,
       locale: zhCN,
       selectedRowKeys: [],
       dataSource: [
         {
           key: '0',
-          time: moment()
-        },
-        {
-          key: '1',
-          time: moment()
+          time: moment(),
+          message: `实时新增用户反馈<font color="warning">132例</font>，请相关同事注意。
+> 类型:<font color="comment">用户反馈</font>
+> 普通用户反馈:<font color="comment">117例</font>
+> VIP用户反馈:<font color="comment">15例</font>`,
+          repeat: false,
+          repeatRange: 0,
+          webhook: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=02f515cc-120d-4abe-b481-0524b4e2488f'
         },
       ],
       count: 2,
       columns: [
         {
-          title: 'time',
+          title: '时间',
           dataIndex: 'time',
           slots: { customRender: 'time' },
         },
         {
-          title: 'operation',
+          title: '内容',
+          dataIndex: 'message',
+          slots: { customRender: 'message' },
+        },
+        {
+          title: '是否循环',
+          dataIndex: 'repeat',
+          slots: { customRender: 'repeat' },
+        },
+        {
+          title: '机器人地址',
+          dataIndex: 'webhook',
+          slots: { customRender: 'webhook' },
+        },
+        {
+          title: '操作',
           dataIndex: 'operation',
           slots: { customRender: 'operation' },
         },
       ],
-      message: `实时新增用户反馈<font color="warning">132例</font>，请相关同事注意。
-> 类型:<font color="comment">用户反馈</font>
-> 普通用户反馈:<font color="comment">117例</font>
-> VIP用户反馈:<font color="comment">15例</font>`
     };
   },
   methods: {
