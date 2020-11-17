@@ -1,13 +1,10 @@
+const path = require('path');
+
 module.exports = {
   css: {
     loaderOptions: {
       less: {
         lessOptions: {
-          modifyVars: {
-            'primary-color': '#1DA57A',
-            'link-color': '#1DA57A',
-            'border-radius-base': '2px',
-          },
           javascriptEnabled: true,
         },
       },
@@ -15,12 +12,16 @@ module.exports = {
   },
   devServer: {
     proxy: {
-      '^/api': {
+      '/api': {
         target: 'http://localhost:7001',
         pathRewrite: {
           '^/api': '',
         },
       },
     }
-  }
+  },
+  chainWebpack: config => {
+    config.resolve.alias.set('@', path.join(__dirname, 'src'));
+  },
+  publicPath: process.env.VUE_APP_PUBLIC_PATH
 };
