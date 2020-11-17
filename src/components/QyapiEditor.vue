@@ -99,13 +99,15 @@ export default {
         method: 'post',
         url: '/api/qyapi/api/task/save',
         data: dataSource,
+      }).finally(() => {
+        loading.value = false;
+        modified.value = false;
       });
+      
       if (response.status === 200) {
         message.success('保存成功');
         dataSource.value = response.data;
       }
-      loading.value = false;
-      modified.value = false;
     }
 
     watch(dataSource, () => {

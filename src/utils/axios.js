@@ -3,12 +3,14 @@ import { message } from 'ant-design-vue';
 
 const instance = axios.create({
   baseURL: process.env.VUE_APP_BASE_URL,
-  timeout: 5000,
+  // timeout: 5000,
 });
 
 instance.interceptors.response.use(response => {
   return response;
 }, err => {
+  // eslint-disable-next-line
+  debugger
   message.error(err.message);
   return Promise.reject(err);
 });
