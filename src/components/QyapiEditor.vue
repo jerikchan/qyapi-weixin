@@ -49,11 +49,11 @@
   </a-form>
 </template>
 <script>
-import moment from 'moment';
 import { nanoid } from 'nanoid';
-import axios from '@/utils/axios';
+import moment from 'moment';
+import axios from 'axios';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons-vue'
-import { ref, reactive, watch, onMounted, toRaw } from 'vue';
+import { ref, watch, onMounted, toRaw } from 'vue';
 import { message } from 'ant-design-vue';
 
 export default {
@@ -62,14 +62,14 @@ export default {
     CloseOutlined,
   },
   setup() {
-    const dataSource = reactive([]);
+    const dataSource = ref([]);
     const modified = ref(false);
     const loading = ref(false);
 
     const handleTest = async (record) => {
       const response = await axios({
         method: 'post',
-        url: '/api/qyapi/api/task/send',
+        url: '/qyapi/api/task/send',
         data: record,
       })
       if (response.status === 200) {
@@ -77,7 +77,7 @@ export default {
       }
     };
     const handleDelete = (id) => {
-      dataSource.value = dataSource.filter(item => item.id !== id);
+      dataSource.value = dataSource.value.filter(item => item.id !== id);
     };
     const handleAdd = () => {
       const newData = {
@@ -89,7 +89,7 @@ export default {
         webhook: '',
         online: false
       };
-      dataSource.push(newData);
+      dataSource.value.push(newData);
     };
     const handleCommit = async () => {
       console.table(toRaw(dataSource));
@@ -97,7 +97,7 @@ export default {
       loading.value = true;
       const response = await axios({
         method: 'post',
-        url: '/api/qyapi/api/task/save',
+        url: '/qyapi/api/task/save',
         data: dataSource,
       }).finally(() => {
         loading.value = false;
@@ -116,7 +116,7 @@ export default {
 
     onMounted(async () => {
       const response = await axios({
-        url: '/api/qyapi/api/task/list'
+        url: '/qyapi/api/task/list'
       });
       
       dataSource.value = response.data.list;

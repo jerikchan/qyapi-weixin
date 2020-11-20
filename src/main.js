@@ -1,25 +1,28 @@
 import { createApp } from 'vue';
 import App from './App';
-
-// import Antd from 'ant-design-vue';
-// import 'ant-design-vue/dist/antd.css';
 import { Table, Form, DatePicker, Switch, Select, Input, Button, Popconfirm, ConfigProvider } from 'ant-design-vue';
+import axios from 'axios';
+import { message } from 'ant-design-vue';
 
-import moment from 'moment';
-import 'moment/dist/locale/zh-cn';
+axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
 
-moment.locale('zh-cn');
+axios.interceptors.response.use(response => {
+  return response;
+}, err => {
+  message.error(err.message);
+  return Promise.reject(err);
+});
 
 const app = createApp(App);
 app.config.productionTip = false;
-
-// app.use(Antd);
-[Table, Form, DatePicker, Switch, Select, Input, Button, Popconfirm, ConfigProvider].map(app.use);
-
 app.config.errorHandler = (err) => {
   if (process.env.NODE_ENV !== 'production') {
     console.error(err);
   }
 };
-
+[Table, Form, DatePicker, Switch, Select, Input, Button, Popconfirm, ConfigProvider].map((component) => {
+  app.use(component);
+});
 app.mount('#app');
+
+export default app;
