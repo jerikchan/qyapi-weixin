@@ -62,7 +62,7 @@ import { nanoid } from 'nanoid';
 import moment from 'moment';
 import axios from 'axios';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons-vue'
-import { ref, reactive, watch, onMounted, toRaw, nextTick } from 'vue';
+import { ref, reactive, watch, onMounted, toRaw } from 'vue';
 import { message } from 'ant-design-vue';
 
 function syncAry(prev, next) {
@@ -112,37 +112,36 @@ export default {
       console.table(data);
 
       loading.value = true;
-      const response = await axios({
-        method: 'post',
-        url: '/api/plan/save',
-        data,
-      }).catch(() => {
-        loading.value = false;
-      });
-      
-      if (response.status == 200) {
-        message.success('保存成功');
-        syncAry(dataSource, response.data);
-        nextTick(() => {
-          modified.value = false;
+
+      try {
+        await axios({
+          method: 'post',
+          url: '/api/plan/save',
+          data,
         });
-  
+
+        message.success('保存成功');
+        modified.value = false;
+      } finally {
         loading.value = false;
       }
     }
 
     onMounted(async () => {
-      const response = await axios({
-        url: '/api/plan/list'
-      });
-      
-      syncAry(dataSource, response.data);
+      try {
+        const response = await axios({
+          url: '/api/plan/list'
+        });
+        
+        syncAry(dataSource, response.data);
+  
+      } finally {
+        watch(dataSource, () => {
+          modified.value = true;
+        });
 
-      watch(dataSource, () => {
-        modified.value = true;
-      });
-
-      loading.value = false;
+        loading.value = false;
+      }
     });
 
     return {
