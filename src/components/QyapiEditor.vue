@@ -116,19 +116,19 @@ export default {
         method: 'post',
         url: '/api/plan/save',
         data,
+      }).catch(() => {
+        loading.value = false;
       });
       
-      if (response.status === 200) {
+      if (response.status == 200) {
         message.success('保存成功');
         syncAry(dataSource, response.data);
         nextTick(() => {
-          nextTick(() => {
-            modified.value = false;
-          });
+          modified.value = false;
         });
+  
+        loading.value = false;
       }
-
-      loading.value = false;
     }
 
     onMounted(async () => {
