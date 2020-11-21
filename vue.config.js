@@ -14,5 +14,13 @@ module.exports = {
     config.resolve.alias.set('@', path.join(__dirname, 'src'));
     config.devtool('source-map');
   },
-  publicPath: process.env.VUE_APP_PUBLIC_PATH
+  publicPath: process.env.VUE_APP_PUBLIC_PATH,
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:7001',
+        changeOrigin: true,
+      }
+    }
+  }
 };

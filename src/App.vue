@@ -6,6 +6,7 @@
 <script>
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 import QyapiEditor from '@/components/QyapiEditor'
+import { readonly } from 'vue';
 
 export default {
   components: {
@@ -13,7 +14,7 @@ export default {
   },
   setup() {
     return {
-      locale: zhCN
+      locale: readonly(zhCN),
     };
   },
 };

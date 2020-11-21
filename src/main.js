@@ -20,9 +20,12 @@ app.config.errorHandler = (err) => {
     console.error(err);
   }
 };
+
 [Table, Form, DatePicker, Switch, Select, Input, Button, Popconfirm, ConfigProvider].map((component) => {
   app.use(component);
 });
+app.config.globalProperties.$message = message;
+
 app.mount('#app');
 
 export default app;

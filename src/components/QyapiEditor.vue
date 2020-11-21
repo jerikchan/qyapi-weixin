@@ -2,9 +2,18 @@
   <a-form :label-col="{ span: 2 }" :wrapper-col="{ span: 22 }">
     <a-form-item label="时间表">
       <a-table rowKey="id" bordered :data-source="dataSource" :columns="columns">
-        <template #status="{ record }">
-          <CheckOutlined v-if="record.online" :style="{ color: '#52c41a' }" />
-          <CloseOutlined v-else :style="{ color: '#f5222d' }"/>
+        <template #online="{ record }">
+          <div v-if="record.online" :style="{ color: '#52c41a' }" >
+            <CheckOutlined />
+            在线
+          </div>
+          <div v-else :style="{ color: '#f5222d' }" >
+            <CloseOutlined />
+            停止
+          </div>
+        </template>
+         <template #open="{ record }">
+          <a-switch v-model:checked="record.open" />
         </template>
         <template #time="{ record }">
           <a-date-picker show-time :value="moment(record.time)" @change="record.time = $event" placeholder="Select Time" />
@@ -12,10 +21,10 @@
         <template #repeat="{ record }">
           <a-switch v-model:checked="record.useRepeat"></a-switch>
           <a-select v-model:value="record.repeat" v-show="record.useRepeat">
-            <a-select-option :value="0">每1周</a-select-option>
-            <a-select-option :value="1">每2周</a-select-option>
-            <a-select-option :value="2">每3周</a-select-option>
-            <a-select-option :value="3">每4周</a-select-option>
+            <a-select-option :value="1">每1周</a-select-option>
+            <a-select-option :value="2">每2周</a-select-option>
+            <a-select-option :value="3">每3周</a-select-option>
+            <a-select-option :value="4">每4周</a-select-option>
           </a-select>
         </template>
         <template #message="{ record }">
@@ -53,8 +62,13 @@ import { nanoid } from 'nanoid';
 import moment from 'moment';
 import axios from 'axios';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons-vue'
-import { ref, watch, onMounted, toRaw } from 'vue';
+import { ref, reactive, watch, onMounted, toRaw, nextTick } from 'vue';
 import { message } from 'ant-design-vue';
+
+function syncAry(prev, next) {
+  Array.prototype.splice.call(prev, 0, prev.length, ...next);
+  return prev;
+}
 
 export default {
   components: {
@@ -62,14 +76,14 @@ export default {
     CloseOutlined,
   },
   setup() {
-    const dataSource = ref([]);
+    const dataSource = reactive([]);
     const modified = ref(false);
-    const loading = ref(false);
+    const loading = ref(true);
 
     const handleTest = async (record) => {
       const response = await axios({
         method: 'post',
-        url: '/qyapi/api/task/send',
+        url: '/api/schedule/send',
         data: record,
       })
       if (response.status === 200) {
@@ -77,7 +91,8 @@ export default {
       }
     };
     const handleDelete = (id) => {
-      dataSource.value = dataSource.value.filter(item => item.id !== id);
+      const index = dataSource.find(item => item.id === id);
+      dataSource.splice(index, 1);
     };
     const handleAdd = () => {
       const newData = {
@@ -85,41 +100,49 @@ export default {
         time: moment(),
         message: `默认任务`,
         useRepeat: false,
-        repeat: 0,
+        repeat: 1,
         webhook: '',
-        online: false
+        online: false,
+        open: false,
       };
-      dataSource.value.push(newData);
+      dataSource.push(newData);
     };
     const handleCommit = async () => {
-      console.table(toRaw(dataSource));
+      const data = toRaw(dataSource);
+      console.table(data);
 
       loading.value = true;
       const response = await axios({
         method: 'post',
-        url: '/qyapi/api/task/save',
-        data: dataSource,
-      }).finally(() => {
-        loading.value = false;
-        modified.value = false;
+        url: '/api/plan/save',
+        data,
       });
       
       if (response.status === 200) {
         message.success('保存成功');
-        dataSource.value = response.data;
+        syncAry(dataSource, response.data);
+        nextTick(() => {
+          nextTick(() => {
+            modified.value = false;
+          });
+        });
       }
-    }
 
-    watch(dataSource, () => {
-      modified.value = true;
-    });
+      loading.value = false;
+    }
 
     onMounted(async () => {
       const response = await axios({
-        url: '/qyapi/api/task/list'
+        url: '/api/plan/list'
       });
       
-      dataSource.value = response.data.list;
+      syncAry(dataSource, response.data);
+
+      watch(dataSource, () => {
+        modified.value = true;
+      });
+
+      loading.value = false;
     });
 
     return {
@@ -134,8 +157,13 @@ export default {
       columns: [
         {
           title: '状态',
-          dataIndex: 'status',
-          slots: { customRender: 'status' },
+          dataIndex: 'online',
+          slots: { customRender: 'online' },
+        },
+        {
+          title: '开启',
+          dataIndex: 'open',
+          slots: { customRender: 'open' },
         },
         {
           title: '时间',
